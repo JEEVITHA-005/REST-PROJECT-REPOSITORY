@@ -1,0 +1,1126 @@
+//USER CONTROLLER
+package com.rest.springapp.controller;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.web.bind.annotation.*;
+
+import com.rest.springapp.model.User;
+import com.rest.springapp.service.UserService;
+
+@RestController
+@RequestMapping("/users")
+public class UserController {
+
+    @Autowired
+    private UserService userService;
+
+    // Create a new user
+    @PostMapping
+    public User createUser(@RequestBody User user) {
+        return userService.saveUser(user);
+    }
+
+    // Update an existing user
+    @PutMapping("/{id}")
+    public User updateUser(@PathVariable Long id, @RequestBody User user) {
+        User existingUser = userService.getUserById(id);
+        if (existingUser == null) {
+            throw new RuntimeException("User with ID " + id + " not found");
+        }
+
+        // Update only the fields that need modification
+        existingUser.setUsername(user.getUsername());
+        existingUser.setEmail(user.getEmail());
+        existingUser.setPassword(user.getPassword());
+
+        return userService.saveUser(existingUser);
+    }
+
+    // Get a user by ID
+    @GetMapping("/{id}")
+    public User getUserById(@PathVariable Long id) {
+        return userService.getUserById(id);
+    }
+
+    // Get all users with pagination and sorting
+    @GetMapping
+    public Page<User> getAllUsers(Pageable pageable) {
+        return userService.getAllUsers(pageable);
+    }
+
+    // Delete a user by ID
+    @DeleteMapping("/{id}")
+    public void deleteUser(@PathVariable Long id) {
+        userService.deleteUser(id);
+    }
+
+    // Get a user by username (using custom JPQL query)
+    @GetMapping("/username/{username}")
+    public User getUserByUsername(@PathVariable String username) {
+        return userService.getUserByUsername(username);
+    }
+}
+//ORDER CONTROLLER
+package com.rest.springapp.controller;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.web.bind.annotation.*;
+
+import com.rest.springapp.model.OrderEntity;
+import com.rest.springapp.service.OrderService;
+
+@RestController
+@RequestMapping("/orders")
+public class OrderController {
+
+    @Autowired
+    private OrderService orderService;
+
+    // Create a new order
+    @PostMapping
+    public OrderEntity createOrder(@RequestBody OrderEntity order) {
+        return orderService.saveOrder(order);
+    }
+
+    // Update an existing order
+    @PutMapping("/{id}")
+    public OrderEntity updateOrder(@PathVariable Long id, @RequestBody OrderEntity order) {
+        OrderEntity existingOrder = orderService.getOrderById(id);
+        if (existingOrder == null) {
+            throw new RuntimeException("Order with ID " + id + " not found");
+        }
+
+        // Update only the fields that need modification
+        existingOrder.setOrderDate(order.getOrderDate());
+        existingOrder.setStatus(order.getStatus());
+        existingOrder.setUserId(order.getUserId());
+        existingOrder.setRestaurantId(order.getRestaurantId());
+
+        return orderService.saveOrder(existingOrder);
+    }
+
+    // Get order by ID
+    @GetMapping("/{id}")
+    public OrderEntity getOrderById(@PathVariable Long id) {
+        return orderService.getOrderById(id);
+    }
+
+    // Get all orders with pagination and sorting
+    @GetMapping
+    public Page<OrderEntity> getAllOrders(Pageable pageable) {
+        return orderService.getAllOrders(pageable);
+    }
+
+    // Get orders by userId with pagination and sorting
+    @GetMapping("/user/{userId}")
+    public Page<OrderEntity> getOrdersByUserId(@PathVariable Long userId, Pageable pageable) {
+        return orderService.getOrdersByUserId(userId, pageable);
+    }
+
+    // Get orders by restaurantId with pagination and sorting
+    @GetMapping("/restaurant/{restaurantId}")
+    public Page<OrderEntity> getOrdersByRestaurantId(@PathVariable Long restaurantId, Pageable pageable) {
+        return orderService.getOrdersByRestaurantId(restaurantId, pageable);
+    }
+
+    // Delete an order by ID
+    @DeleteMapping("/{id}")
+    public void deleteOrder(@PathVariable Long id) {
+        orderService.deleteOrder(id);
+    }
+}
+//ORDERITEM CONTROLLER
+package com.rest.springapp.controller;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.web.bind.annotation.*;
+
+import com.rest.springapp.model.OrderItem;
+import com.rest.springapp.service.OrderItemService;
+
+@RestController
+@RequestMapping("/order-items")
+public class OrderItemController {
+
+    private final OrderItemService orderItemService;
+
+    // ✅ Constructor Injection (Fix for Bean Creation Issue)
+    public OrderItemController(OrderItemService orderItemService) {
+        this.orderItemService = orderItemService;
+    }
+
+    // Create or update an order item
+    @PostMapping
+    public OrderItem createOrUpdateOrderItem(@RequestBody OrderItem orderItem) {
+        return orderItemService.saveOrderItem(orderItem);
+    }
+
+    // ✅ Update an existing order item
+    @PutMapping("/{id}")
+    public OrderItem updateOrderItem(@PathVariable Long id, @RequestBody OrderItem orderItem) {
+        orderItem.setId(id);
+        return orderItemService.saveOrderItem(orderItem);
+    }
+
+    // Get order item by ID
+    @GetMapping("/{id}")
+    public OrderItem getOrderItemById(@PathVariable Long id) {
+        return orderItemService.getOrderItemById(id);
+    }
+
+    // Get all order items with pagination and sorting
+    @GetMapping
+    public Page<OrderItem> getAllOrderItems(Pageable pageable) {
+        return orderItemService.getAllOrderItems(pageable);
+    }
+
+    // Get order items by orderId with pagination and sorting
+    @GetMapping("/order/{orderId}")
+    public Page<OrderItem> getOrderItemsByOrderId(@PathVariable Long orderId, Pageable pageable) {
+        return orderItemService.getOrderItemsByOrderId(orderId, pageable);
+    }
+
+    // Get order items by menuItemId with pagination and sorting
+    @GetMapping("/menu/{menuItemId}")
+    public Page<OrderItem> getOrderItemsByMenuItemId(@PathVariable Long menuItemId, Pageable pageable) {
+        return orderItemService.getOrderItemsByMenuItemId(menuItemId, pageable);
+    }
+
+    // Delete order item by ID
+    @DeleteMapping("/{id}")
+    public void deleteOrderItem(@PathVariable Long id) {
+        orderItemService.deleteOrderItem(id);
+    }
+}
+//MENUITEM CONTROLLER
+package com.rest.springapp.controller;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.web.bind.annotation.*;
+
+import com.rest.springapp.model.MenuItem;
+import com.rest.springapp.service.MenuItemService;
+
+@RestController
+@RequestMapping("/menu-items")
+public class MenuItemController {
+
+    @Autowired
+    private MenuItemService menuItemService;
+
+    // Create a new menu item
+    @PostMapping
+    public MenuItem createMenuItem(@RequestBody MenuItem menuItem) {
+        return menuItemService.saveMenuItem(menuItem);
+    }
+
+    // Update an existing menu item
+    @PutMapping("/{id}")
+    public MenuItem updateMenuItem(@PathVariable Long id, @RequestBody MenuItem menuItem) {
+        menuItem.setId(id); // Ensure the ID is set for updating the existing record
+        return menuItemService.saveMenuItem(menuItem);
+    }
+
+    // Get menu item by ID
+    @GetMapping("/{id}")
+    public MenuItem getMenuItemById(@PathVariable Long id) {
+        return menuItemService.getMenuItemById(id);
+    }
+
+    // Get all menu items with pagination and sorting
+    @GetMapping
+    public Page<MenuItem> getAllMenuItems(Pageable pageable) {
+        return menuItemService.getAllMenuItems(pageable);
+    }
+
+    // Get menu items by restaurantId with pagination and sorting
+    @GetMapping("/restaurant/{restaurantId}")
+    public Page<MenuItem> getMenuItemsByRestaurantId(@PathVariable Long restaurantId, Pageable pageable) {
+        return menuItemService.getMenuItemsByRestaurantId(restaurantId, pageable);
+    }
+
+    // Get menu items by name with pagination and sorting
+    @GetMapping("/search")
+    public Page<MenuItem> getMenuItemsByName(@RequestParam String name, Pageable pageable) {
+        return menuItemService.getMenuItemsByName(name, pageable);
+    }
+
+    // Delete menu item by ID
+    @DeleteMapping("/{id}")
+    public void deleteMenuItem(@PathVariable Long id) {
+        menuItemService.deleteMenuItem(id);
+    }
+}
+//RESTAURANT CONTROLLER
+package com.rest.springapp.controller;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.web.bind.annotation.*;
+
+import com.rest.springapp.model.Restaurant;
+import com.rest.springapp.service.RestaurantService;
+
+@RestController
+@RequestMapping("/restaurants")
+public class RestaurantController {
+
+    @Autowired
+    private RestaurantService restaurantService;
+
+    // Create or update a restaurant
+    @PostMapping
+    public Restaurant createOrUpdateRestaurant(@RequestBody Restaurant restaurant) {
+        return restaurantService.saveRestaurant(restaurant);
+    }
+
+    // Update an existing restaurant
+    @PutMapping("/{id}")
+    public Restaurant updateRestaurant(@PathVariable Long id, @RequestBody Restaurant restaurant) {
+        restaurant.setId(id); // Ensure the ID matches the path variable
+        return restaurantService.saveRestaurant(restaurant);
+    }
+
+    // Get restaurant by ID
+    @GetMapping("/{id}")
+    public Restaurant getRestaurantById(@PathVariable Long id) {
+        return restaurantService.getRestaurantById(id);
+    }
+
+    // Get all restaurants with pagination and sorting
+    @GetMapping
+    public Page<Restaurant> getAllRestaurants(Pageable pageable) {
+        return restaurantService.getAllRestaurants(pageable);
+    }
+
+    // Get restaurants by name with pagination and sorting
+    @GetMapping("/search")
+    public Page<Restaurant> getRestaurantsByName(@RequestParam String name, Pageable pageable) {
+        return restaurantService.getRestaurantsByName(name, pageable);
+    }
+
+    // Delete a restaurant by ID
+    @DeleteMapping("/{id}")
+    public void deleteRestaurant(@PathVariable Long id) {
+        restaurantService.deleteRestaurant(id);
+    }
+}
+//FEEDBACK CONTROLLER
+package com.rest.springapp.controller;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.web.bind.annotation.*;
+
+import com.rest.springapp.model.Feedback;
+import com.rest.springapp.service.FeedbackService;
+
+@RestController
+@RequestMapping("/feedbacks")
+public class FeedbackController {
+
+    @Autowired
+    private FeedbackService feedbackService;
+
+    // Create or update a feedback
+    @PostMapping
+    public Feedback createOrUpdateFeedback(@RequestBody Feedback feedback) {
+        return feedbackService.saveFeedback(feedback);
+    }
+
+    // ✅ Update an existing feedback (PUT mapping)
+    @PutMapping("/{id}")
+    public Feedback updateFeedback(@PathVariable Long id, @RequestBody Feedback feedback) {
+        feedback.setId(id);
+        return feedbackService.saveFeedback(feedback);
+    }
+
+    // Get feedback by ID
+    @GetMapping("/{id}")
+    public Feedback getFeedbackById(@PathVariable Long id) {
+        return feedbackService.getFeedbackById(id);
+    }
+
+    // Get all feedbacks with pagination and sorting
+    @GetMapping
+    public Page<Feedback> getAllFeedbacks(Pageable pageable) {
+        return feedbackService.getAllFeedbacks(pageable);
+    }
+
+    // Get feedbacks by restaurantId with pagination and sorting
+    @GetMapping("/restaurant/{restaurantId}")
+    public Page<Feedback> getFeedbacksByRestaurantId(@PathVariable Long restaurantId, Pageable pageable) {
+        return feedbackService.getFeedbacksByRestaurantId(restaurantId, pageable);
+    }
+
+    // Get feedbacks by userId with pagination and sorting
+    @GetMapping("/user/{userId}")
+    public Page<Feedback> getFeedbacksByUserId(@PathVariable Long userId, Pageable pageable) {
+        return feedbackService.getFeedbacksByUserId(userId, pageable);
+    }
+
+    // Get feedbacks by content with pagination and sorting
+    @GetMapping("/search")
+    public Page<Feedback> getFeedbacksByContent(@RequestParam String content, Pageable pageable) {
+        return feedbackService.getFeedbacksByContent(content, pageable);
+    }
+
+    // Delete feedback by ID
+    @DeleteMapping("/{id}")
+    public void deleteFeedback(@PathVariable Long id) {
+        feedbackService.deleteFeedback(id);
+    }
+}
+//USER MODEL
+package com.rest.springapp.model;
+
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+
+@Entity
+public class User {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    private String username;
+    private String email;
+    private String password;
+
+    // Getters and setters
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+}
+//ORDERENTITY MODEL
+package com.rest.springapp.model;
+
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+
+@Entity
+public class OrderEntity {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    private String orderDate;
+    private String status;
+
+    private Long userId;  // Foreign key reference (userId without relationship mapping)
+    private Long restaurantId;  // Foreign key reference (restaurantId without relationship mapping)
+
+    // Getters and Setters
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public String getOrderDate() {
+        return orderDate;
+    }
+
+    public void setOrderDate(String orderDate) {
+        this.orderDate = orderDate;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    public Long getUserId() {
+        return userId;
+    }
+
+    public void setUserId(Long userId) {
+        this.userId = userId;
+    }
+
+    public Long getRestaurantId() {
+        return restaurantId;
+    }
+
+    public void setRestaurantId(Long restaurantId) {
+        this.restaurantId = restaurantId;
+    }
+}
+//ORDERITEM MODEL
+package com.rest.springapp.model;
+
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+
+@Entity
+public class OrderItem {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    private int quantity;
+    private Long orderId;
+    private Long menuItemId;
+
+    // ✅ Add a No-Args Constructor (Required for JPA)
+    public OrderItem() {
+    }
+
+    // ✅ Add Constructor for Easy Initialization
+    public OrderItem(Long id, int quantity, Long orderId, Long menuItemId) {
+        this.id = id;
+        this.quantity = quantity;
+        this.orderId = orderId;
+        this.menuItemId = menuItemId;
+    }
+
+    // Getters and Setters
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public int getQuantity() {
+        return quantity;
+    }
+
+    public void setQuantity(int quantity) {
+        this.quantity = quantity;
+    }
+
+    public Long getOrderId() {
+        return orderId;
+    }
+
+    public void setOrderId(Long orderId) {
+        this.orderId = orderId;
+    }
+
+    public Long getMenuItemId() {
+        return menuItemId;
+    }
+
+    public void setMenuItemId(Long menuItemId) {
+        this.menuItemId = menuItemId;
+    }
+}
+//MENUITEM MODEL
+package com.rest.springapp.model;
+
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+
+@Entity
+public class MenuItem {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    private String name;
+    private double price;
+
+    private Long restaurantId;  // Foreign key reference (restaurantId without relationship mapping)
+
+    // Getters and Setters
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public double getPrice() {
+        return price;
+    }
+
+    public void setPrice(double price) {
+        this.price = price;
+    }
+
+    public Long getRestaurantId() {
+        return restaurantId;
+    }
+
+    public void setRestaurantId(Long restaurantId) {
+        this.restaurantId = restaurantId;
+    }
+}
+//RESTAURANT MODEL
+package com.rest.springapp.model;
+
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+
+@Entity
+public class Restaurant {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    private String name;
+    private String address;
+
+    // Getters and Setters
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getAddress() {
+        return address;
+    }
+
+    public void setAddress(String address) {
+        this.address = address;
+    }
+}
+//FEEDBACK MODEL
+package com.rest.springapp.model;
+
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+
+@Entity
+public class Feedback {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    private String content;
+
+    private Long restaurantId;  // Foreign key reference to restaurantId (without relationship mapping)
+    private Long userId;  // Foreign key reference to userId (without relationship mapping)
+
+    // Getters and Setters
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public String getContent() {
+        return content;
+    }
+
+    public void setContent(String content) {
+        this.content = content;
+    }
+
+    public Long getRestaurantId() {
+        return restaurantId;
+    }
+
+    public void setRestaurantId(Long restaurantId) {
+        this.restaurantId = restaurantId;
+    }
+
+    public Long getUserId() {
+        return userId;
+    }
+
+    public void setUserId(Long userId) {
+        this.userId = userId;
+    }
+}
+//USER REPOSITORY
+package com.rest.springapp.repository;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.stereotype.Repository;
+
+import com.rest.springapp.model.User;
+@Repository
+public interface UserRepository extends JpaRepository<User, Long> {
+
+    // Find all users with pagination and sorting
+    @SuppressWarnings("null")
+    Page<User> findAll(Pageable pageable);
+
+    // Custom JPQL query: Find a user by username (case insensitive)
+    @Query("SELECT u FROM User u WHERE LOWER(u.username) = LOWER(:username)")
+    User findByUsernameIgnoreCase(String username);
+}
+//ORDER REPOSITORY
+package com.rest.springapp.repository;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.stereotype.Repository;
+
+import com.rest.springapp.model.OrderEntity;
+
+@Repository
+public interface OrderRepository extends JpaRepository<OrderEntity, Long> {
+
+    // Find all orders with pagination and sorting
+    @SuppressWarnings("null")
+    Page<OrderEntity> findAll(Pageable pageable);
+
+    // Find orders by user ID (Fix: Use o.userId instead of o.user.id)
+    @Query("SELECT o FROM OrderEntity o WHERE o.userId = :userId ORDER BY o.orderDate DESC")
+    Page<OrderEntity> findByUserId(Long userId, Pageable pageable);
+
+    // Find orders by restaurant ID (Fix: Use o.restaurantId instead of o.restaurant.id)
+    @Query("SELECT o FROM OrderEntity o WHERE o.restaurantId = :restaurantId ORDER BY o.orderDate DESC")
+    Page<OrderEntity> findByRestaurantId(Long restaurantId, Pageable pageable);
+}
+//ORDERITEM REPOSITORY
+package com.rest.springapp.repository;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.stereotype.Repository;
+import com.rest.springapp.model.OrderItem;
+
+@Repository
+public interface OrderItemRepository extends JpaRepository<OrderItem, Long> {
+
+    // Find all order items with pagination and sorting
+    @SuppressWarnings("null")
+    Page<OrderItem> findAll(Pageable pageable);
+
+    // ✅ Fix JPQL Queries to Use Named Parameters Correctly
+    @Query("SELECT oi FROM OrderItem oi WHERE oi.orderId = :orderId")
+    Page<OrderItem> findByOrderId(@org.springframework.data.repository.query.Param("orderId") Long orderId, Pageable pageable);
+
+    @Query("SELECT oi FROM OrderItem oi WHERE oi.menuItemId = :menuItemId")
+    Page<OrderItem> findByMenuItemId(@org.springframework.data.repository.query.Param("menuItemId") Long menuItemId, Pageable pageable);
+}
+//MENUITEM REPOSITORY
+package com.rest.springapp.repository;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.stereotype.Repository;
+
+import com.rest.springapp.model.MenuItem;
+@Repository
+public interface MenuItemRepository extends JpaRepository<MenuItem, Long> {
+
+    // Find all menu items with pagination and sorting
+    @SuppressWarnings("null")
+    Page<MenuItem> findAll(Pageable pageable);
+
+    // Find menu items by restaurantId (Custom JPQL Query)
+    @Query("SELECT m FROM MenuItem m WHERE m.restaurantId = :restaurantId")
+    Page<MenuItem> findByRestaurantId(Long restaurantId, Pageable pageable);
+
+    // Find menu items by name (Custom JPQL Query)
+    @Query("SELECT m FROM MenuItem m WHERE m.name LIKE %:name%")
+    Page<MenuItem> findByNameContaining(String name, Pageable pageable);
+}
+//RESTAURANT REPOSITORY
+package com.rest.springapp.repository;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.stereotype.Repository;
+
+import com.rest.springapp.model.Restaurant;
+@Repository
+public interface RestaurantRepository extends JpaRepository<Restaurant, Long> {
+
+    // Find all restaurants with pagination and sorting
+    @SuppressWarnings("null")
+    Page<Restaurant> findAll(Pageable pageable);
+
+    // Find restaurant by name (Custom JPQL Query)
+    @Query("SELECT r FROM Restaurant r WHERE r.name LIKE %:name%")
+    Page<Restaurant> findByNameContaining(String name, Pageable pageable);
+}
+//FEEDBACK REPOSITORY
+package com.rest.springapp.repository;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.stereotype.Repository;
+
+import com.rest.springapp.model.Feedback;
+
+@Repository
+public interface FeedbackRepository extends JpaRepository<Feedback, Long> {
+
+    // Find all feedbacks with pagination and sorting
+    @SuppressWarnings("null")
+    Page<Feedback> findAll(Pageable pageable);
+
+    // Find feedbacks by restaurantId with pagination and sorting
+    @Query("SELECT f FROM Feedback f WHERE f.restaurantId = :restaurantId")
+    Page<Feedback> findByRestaurantId(Long restaurantId, Pageable pageable);
+
+    // Find feedbacks by userId with pagination and sorting
+    @Query("SELECT f FROM Feedback f WHERE f.userId = :userId")
+    Page<Feedback> findByUserId(Long userId, Pageable pageable);
+
+    // Search feedbacks by content with pagination and sorting
+    @Query("SELECT f FROM Feedback f WHERE f.content LIKE %:content%")
+    Page<Feedback> findByContentContaining(String content, Pageable pageable);
+}
+//USER SERVICE
+package com.rest.springapp.service;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+
+import com.rest.springapp.model.User;
+import com.rest.springapp.repository.UserRepository;
+
+@Service
+public class UserService {
+
+    @Autowired
+    private UserRepository userRepository;
+
+    // Create or update a user
+    public User saveUser(User user) {
+        return userRepository.save(user);
+    }
+
+    // Get a user by ID
+    public User getUserById(Long id) {
+        return userRepository.findById(id).orElse(null);
+    }
+
+    // Get all users with pagination and sorting
+    public Page<User> getAllUsers(Pageable pageable) {
+        return userRepository.findAll(pageable);
+    }
+
+    // Delete a user
+    public void deleteUser(Long id) {
+        userRepository.deleteById(id);
+    }
+
+    // Custom JPQL query to find a user by username
+    public User getUserByUsername(String username) {
+        return userRepository.findByUsernameIgnoreCase(username);
+    }
+}
+//ORDER SERVICE
+package com.rest.springapp.service;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+
+import com.rest.springapp.model.OrderEntity;
+//import com.rest.springapp.model.OrderEntity;
+import com.rest.springapp.repository.OrderRepository;
+
+@Service
+public class OrderService {
+
+    @Autowired
+    private OrderRepository orderRepository;
+
+    // Create or update an order
+    public OrderEntity saveOrder(OrderEntity order) {
+        return orderRepository.save(order);
+    }
+
+    // Get a specific order by ID
+    public OrderEntity getOrderById(Long id) {
+        return orderRepository.findById(id).orElse(null);
+    }
+
+    // Get all orders with pagination and sorting
+    public Page<OrderEntity> getAllOrders(Pageable pageable) {
+        return orderRepository.findAll(pageable);
+    }
+
+    // Get orders by userId with pagination and sorting
+    public Page<OrderEntity> getOrdersByUserId(Long userId, Pageable pageable) {
+        return orderRepository.findByUserId(userId, pageable);
+    }
+
+    // Get orders by restaurantId with pagination and sorting
+    public Page<OrderEntity> getOrdersByRestaurantId(Long restaurantId, Pageable pageable) {
+        return orderRepository.findByRestaurantId(restaurantId, pageable);
+    }
+
+    // Delete an order
+    public void deleteOrder(Long id) {
+        orderRepository.deleteById(id);
+    }
+}
+//ORDERITEM SERVICE
+package com.rest.springapp.service;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+
+import com.rest.springapp.model.OrderItem;
+import com.rest.springapp.repository.OrderItemRepository;
+
+@Service
+public class OrderItemService {
+
+    @Autowired
+    private OrderItemRepository orderItemRepository;
+
+    // Create or update an order item
+    public OrderItem saveOrderItem(OrderItem orderItem) {
+        return orderItemRepository.save(orderItem);
+    }
+
+    // Get a specific order item by ID
+    public OrderItem getOrderItemById(Long id) {
+        return orderItemRepository.findById(id).orElse(null);
+    }
+
+    // Get all order items with pagination and sorting
+    public Page<OrderItem> getAllOrderItems(Pageable pageable) {
+        return orderItemRepository.findAll(pageable);
+    }
+
+    // Get order items by orderId with pagination and sorting
+    public Page<OrderItem> getOrderItemsByOrderId(Long orderId, Pageable pageable) {
+        return orderItemRepository.findByOrderId(orderId, pageable);
+    }
+
+    // Get order items by menuItemId with pagination and sorting
+    public Page<OrderItem> getOrderItemsByMenuItemId(Long menuItemId, Pageable pageable) {
+        return orderItemRepository.findByMenuItemId(menuItemId, pageable);
+    }
+
+    // Delete an order item by ID
+    public void deleteOrderItem(Long id) {
+        orderItemRepository.deleteById(id);
+    }
+}
+//MENUITEM SERVICE
+package com.rest.springapp.service;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+
+import com.rest.springapp.model.MenuItem;
+import com.rest.springapp.repository.MenuItemRepository;
+
+@Service
+public class MenuItemService {
+
+    @Autowired
+    private MenuItemRepository menuItemRepository;
+
+    // Create or update a menu item
+    public MenuItem saveMenuItem(MenuItem menuItem) {
+        return menuItemRepository.save(menuItem);
+    }
+
+    // Get a specific menu item by ID
+    public MenuItem getMenuItemById(Long id) {
+        return menuItemRepository.findById(id).orElse(null);
+    }
+
+    // Get all menu items with pagination and sorting
+    public Page<MenuItem> getAllMenuItems(Pageable pageable) {
+        return menuItemRepository.findAll(pageable);
+    }
+
+    // Get menu items by restaurantId with pagination and sorting
+    public Page<MenuItem> getMenuItemsByRestaurantId(Long restaurantId, Pageable pageable) {
+        return menuItemRepository.findByRestaurantId(restaurantId, pageable);
+    }
+
+    // Get menu items by name with pagination and sorting
+    public Page<MenuItem> getMenuItemsByName(String name, Pageable pageable) {
+        return menuItemRepository.findByNameContaining(name, pageable);
+    }
+
+    // Delete a menu item by ID
+    public void deleteMenuItem(Long id) {
+        menuItemRepository.deleteById(id);
+    }
+}
+//RESTAURANT SERVICE
+package com.rest.springapp.service;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+
+import com.rest.springapp.model.Restaurant;
+import com.rest.springapp.repository.RestaurantRepository;
+
+@Service
+public class RestaurantService {
+
+    @Autowired
+    private RestaurantRepository restaurantRepository;
+
+    // Create or update a restaurant
+    public Restaurant saveRestaurant(Restaurant restaurant) {
+        return restaurantRepository.save(restaurant);
+    }
+
+    // Get a specific restaurant by ID
+    public Restaurant getRestaurantById(Long id) {
+        return restaurantRepository.findById(id).orElse(null);
+    }
+
+    // Get all restaurants with pagination and sorting
+    public Page<Restaurant> getAllRestaurants(Pageable pageable) {
+        return restaurantRepository.findAll(pageable);
+    }
+
+    // Get restaurants by name with pagination and sorting
+    public Page<Restaurant> getRestaurantsByName(String name, Pageable pageable) {
+        return restaurantRepository.findByNameContaining(name, pageable);
+    }
+
+    // Delete a restaurant by ID
+    public void deleteRestaurant(Long id) {
+        restaurantRepository.deleteById(id);
+    }
+}
+//FEEDBACK SERVICE
+package com.rest.springapp.service;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+
+import com.rest.springapp.model.Feedback;
+import com.rest.springapp.repository.FeedbackRepository;
+
+@Service
+public class FeedbackService {
+
+    @Autowired
+    private FeedbackRepository feedbackRepository;
+
+    // Create or update a feedback
+    public Feedback saveFeedback(Feedback feedback) {
+        return feedbackRepository.save(feedback);
+    }
+
+    // Get a specific feedback by ID
+    public Feedback getFeedbackById(Long id) {
+        return feedbackRepository.findById(id).orElse(null);
+    }
+
+    // Get all feedbacks with pagination and sorting
+    public Page<Feedback> getAllFeedbacks(Pageable pageable) {
+        return feedbackRepository.findAll(pageable);
+    }
+
+    // Get feedbacks by restaurantId with pagination and sorting
+    public Page<Feedback> getFeedbacksByRestaurantId(Long restaurantId, Pageable pageable) {
+        return feedbackRepository.findByRestaurantId(restaurantId, pageable);
+    }
+
+    // Get feedbacks by userId with pagination and sorting
+    public Page<Feedback> getFeedbacksByUserId(Long userId, Pageable pageable) {
+        return feedbackRepository.findByUserId(userId, pageable);
+    }
+
+    // Get feedbacks by content with pagination and sorting
+    public Page<Feedback> getFeedbacksByContent(String content, Pageable pageable) {
+        return feedbackRepository.findByContentContaining(content, pageable);
+    }
+
+    // Delete a feedback by ID
+    public void deleteFeedback(Long id) {
+        feedbackRepository.deleteById(id);
+    }
+}
